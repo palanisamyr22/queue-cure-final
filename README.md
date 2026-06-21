@@ -177,3 +177,6 @@ Follow this script to perfectly showcase all major hackathon criteria:
 4. **Call Next (WebSockets)**: Click "Call Next Patient" on the Receptionist Dashboard. Watch the Patient Display instantly animate. Alice moves to the "Now being served" massive card, and Bob moves to "You are next". Note that you never refreshed the right-side page.
 5. **No-Show Handling**: Click "Mark No-Show". Watch Alice disappear from the queue, allowing you to call Bob next.
 6. **Graceful Reconnect**: Kill your terminal running the backend `uvicorn` server. Show the judges the instant "Offline" red indicator on the TV screen. Restart the terminal. Show the TV automatically recovering the connection without user intervention.
+
+# queue-cure
+ Real-Time Clinic Queue Management System
