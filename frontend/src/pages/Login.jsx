@@ -74,7 +74,7 @@ export default function Login() {
                   setError('');
                 }}
                 className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                placeholder="receptionist"
+                placeholder="Enter username"
                 autoFocus
               />
             </div>
