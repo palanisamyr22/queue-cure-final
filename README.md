@@ -27,9 +27,17 @@ Queue Cure solves this by:
 
 ---
 
-## 🏗️ Architecture Diagram
+## 🏗️ Architecture Overview
 
-```mermaid
+Receptionist Dashboard
+        ↓
+FastAPI Backend
+        ↓
+SQLite Database
+        ↓
+WebSocket Manager
+        ↓
+Patient Dashboard
 graph TD;
     A[Receptionist Screen] -->|POST /call-next| B[FastAPI Backend];
     B -->|Commit to DB| C[(SQLite DB)];
@@ -164,19 +172,3 @@ Endpoint: `/ws/queue`
   "timestamp": "2026-06-21T10:00:00.000"
 }
 ```
-
----
-
-## 🎬 Hackathon Demo Instructions (2-3 Minutes)
-
-Follow this script to perfectly showcase all major hackathon criteria:
-
-1. **Split Screen Setup**: Put the Receptionist Dashboard on the left and the Patient Display on the right.
-2. **Fast Entry**: Click into the Receptionist "Patient Name" field. Type "Alice" and press Enter. Then type "Bob" and press Enter. Point out that the focus automatically returns to the input field for maximum clinic efficiency.
-3. **Wait Times in Action**: Point out the Patient Display on the right. Notice that Bob's estimated wait time is mathematically calculated based on the fact that Alice is ahead of him.
-4. **Call Next (WebSockets)**: Click "Call Next Patient" on the Receptionist Dashboard. Watch the Patient Display instantly animate. Alice moves to the "Now being served" massive card, and Bob moves to "You are next". Note that you never refreshed the right-side page.
-5. **No-Show Handling**: Click "Mark No-Show". Watch Alice disappear from the queue, allowing you to call Bob next.
-6. **Graceful Reconnect**: Kill your terminal running the backend `uvicorn` server. Show the judges the instant "Offline" red indicator on the TV screen. Restart the terminal. Show the TV automatically recovering the connection without user intervention.
-
-# queue-cure
- Real-Time Clinic Queue Management System
