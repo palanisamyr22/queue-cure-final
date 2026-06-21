@@ -261,3 +261,39 @@ class WSMessage(BaseModel):
     timestamp: str = Field(
         description="ISO-8601 naive UTC string of when the event was generated."
     )
+
+
+# ---------------------------------------------------------------------------
+# History and Reset schemas
+# ---------------------------------------------------------------------------
+
+
+class ArchivedPatientResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    token_number: int
+    name: str
+    phone: Optional[str]
+    status: str
+    created_at: datetime
+    called_at: Optional[datetime] = None
+    consultation_start: Optional[datetime] = None
+    consultation_end: Optional[datetime] = None
+    wait_time_minutes: Optional[int] = None
+    consultation_duration_minutes: Optional[int] = None
+    archived_at: datetime
+
+
+class HistoryAnalytics(BaseModel):
+    patients_served_today: int
+    avg_wait_time: float
+    avg_consultation_time: float
+    no_show_count: int
+
+
+class QueueHistoryResponse(BaseModel):
+    records: List[ArchivedPatientResponse]
+    analytics: HistoryAnalytics
+    total: int
+

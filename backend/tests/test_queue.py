@@ -59,3 +59,60 @@ def test_queue_status_wait_time(client):
     data = wait_resp.json()
     assert data["people_ahead"] == 1
     assert data["estimated_minutes"] == 10
+
+
+def test_reset_queue(client):
+    # 1. Add some patients to the queue
+    client.post("/api/patients/", json={"name": "Alice"})
+    client.post("/api/patients/", json={"name": "Bob"})
+    
+    # Promote first patient
+    client.post("/api/queue/call-next")
+
+    # 2. Reset the queue
+    reset_resp = client.request("DELETE", "/api/queue/reset")
+    assert reset_resp.status_code == 200
+    
+    # 3. Verify active queue is empty
+    status_resp = client.get("/api/queue/status")
+    assert status_resp.json()["total_waiting"] == 0
+    assert status_resp.json()["current_token"] is None
+
+    # 4. Verify new patient generates Token #1
+    new_patient = client.post("/api/patients/", json={"name": "Charlie"})
+    assert new_patient.status_code == 201
+    assert new_patient.json()["token_number"] == 1
+
+
+def test_get_history(client):
+    # 1. Reset current state
+    client.request("DELETE", "/api/queue/reset")
+
+    # 2. Add and complete a patient to populate metrics
+    client.post("/api/patients/", json={"name": "David"})
+    client.post("/api/queue/call-next")
+    client.post("/api/queue/complete")
+    
+    # Add a no-show
+    client.post("/api/patients/", json={"name": "Eva"})
+    client.post("/api/queue/call-next")
+    client.post("/api/queue/no-show")
+
+    # 3. Reset to archive
+    client.request("DELETE", "/api/queue/reset")
+
+    # 4. Fetch history and verify entries
+    hist_resp = client.get("/api/history")
+    assert hist_resp.status_code == 200
+    data = hist_resp.json()
+    assert data["total"] == 2
+    
+    # Check analytics
+    assert data["analytics"]["patients_served_today"] == 1
+    assert data["analytics"]["no_show_count"] == 1
+    
+    # Search filter
+    search_resp = client.get("/api/history?name=David")
+    assert search_resp.json()["total"] == 1
+    assert search_resp.json()["records"][0]["name"] == "David"
+

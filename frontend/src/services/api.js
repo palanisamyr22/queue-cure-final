@@ -57,5 +57,16 @@ export const api = {
 
   getStatus: () => fetchApi('/api/queue/status'),
   
-  getWaitTime: (tokenId) => fetchApi(`/api/queue/wait-time/${tokenId}`)
+  getWaitTime: (tokenId) => fetchApi(`/api/queue/wait-time/${tokenId}`),
+
+  resetQueue: () => fetchApi('/api/queue/reset', { method: 'DELETE' }),
+
+  getHistory: (params = {}) => {
+    const cleanParams = {};
+    Object.keys(params).forEach(k => {
+      if (params[k]) cleanParams[k] = params[k];
+    });
+    const qs = new URLSearchParams(cleanParams).toString();
+    return fetchApi(`/api/history?${qs}`);
+  }
 };

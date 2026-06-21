@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { api } from '../services/api';
@@ -6,11 +6,16 @@ import AddPatientForm from '../components/receptionist/AddPatientForm';
 import QueueTable from '../components/receptionist/QueueTable';
 import CallNextButton from '../components/receptionist/CallNextButton';
 import ConsultationTimeSetting from '../components/receptionist/ConsultationTimeSetting';
+import ResetButton from '../components/receptionist/ResetButton';
+import HistorySection from '../components/receptionist/HistorySection';
 import { Wifi, WifiOff, Users, UserCheck, UserX, LogOut } from 'lucide-react';
 
 export default function ReceptionistDashboard() {
   const navigate = useNavigate();
   const { snapshot, isConnected, error } = useWebSocket();
+  const [historyRefresh, setHistoryRefresh] = useState(0);
+
+  const handleResetSuccess = () => setHistoryRefresh(c => c + 1);
 
   const username = localStorage.getItem('admin_username') || 'receptionist';
 
@@ -153,6 +158,7 @@ export default function ReceptionistDashboard() {
             {settings && (
               <ConsultationTimeSetting initialMinutes={settings.avg_consultation_minutes} />
             )}
+            <ResetButton onResetSuccess={handleResetSuccess} />
 
           </div>
 
@@ -170,6 +176,9 @@ export default function ReceptionistDashboard() {
           </div>
 
         </div>
+
+        {/* History Dashboard */}
+        <HistorySection refreshTrigger={historyRefresh} />
       </main>
     </div>
   );

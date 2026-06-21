@@ -399,3 +399,93 @@ class ConsultationLog(Base):
             f"<ConsultationLog patient_id={self.patient_id} "
             f"duration={self.duration_minutes}min>"
         )
+
+
+# ---------------------------------------------------------------------------
+# ArchivedPatient (History)
+# ---------------------------------------------------------------------------
+
+
+class ArchivedPatient(Base):
+    """
+    Historical log of patient visits archived upon queue reset.
+    Stores pre-calculated metrics (wait times and durations) for auditing/analytics.
+    """
+
+    __tablename__ = "archived_patients"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+
+    token_number: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        comment="Original token number (Patient.id) from the active queue.",
+    )
+
+    name: Mapped[str] = mapped_column(
+        String(200),
+        nullable=False,
+    )
+
+    phone: Mapped[Optional[str]] = mapped_column(
+        String(30),
+        nullable=True,
+        default=None,
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        comment="Final status: waiting | in_consultation | completed | no_show.",
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        nullable=False,
+        comment="Arrival time.",
+    )
+
+    called_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=False),
+        nullable=True,
+    )
+
+    consultation_start: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=False),
+        nullable=True,
+    )
+
+    consultation_end: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=False),
+        nullable=True,
+    )
+
+    wait_time_minutes: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+        comment="Wait duration in minutes: consultation_start - created_at, or now - created_at.",
+    )
+
+    consultation_duration_minutes: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+        comment="Consultation duration in minutes: consultation_end - consultation_start.",
+    )
+
+    archived_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        nullable=False,
+        default=_utcnow,
+        comment="Clinic day reset timestamp.",
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<ArchivedPatient id={self.id} token={self.token_number} "
+            f"name={self.name!r} status={self.status!r}>"
+        )
+

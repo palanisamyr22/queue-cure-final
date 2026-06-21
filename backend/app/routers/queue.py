@@ -47,11 +47,11 @@ import threading
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import ConsultationLog, Patient, PatientStatus, QueueSettings, _utcnow
+from app.models import ConsultationLog, Patient, PatientStatus, QueueSettings, ArchivedPatient, _utcnow
 from app.schemas import (
     CallNextResponse,
     CompleteConsultationResponse,
@@ -61,10 +61,14 @@ from app.schemas import (
     QueueSettingsUpdate,
     QueueStatusResponse,
     WaitTimeResponse,
+    QueueHistoryResponse,
+    ArchivedPatientResponse,
+    HistoryAnalytics,
 )
 from app.websocket_manager import broadcast_queue_update
 
 router = APIRouter(prefix="/api/queue", tags=["queue"])
+history_router = APIRouter(tags=["history"])
 
 # ---------------------------------------------------------------------------
 # Process-level lock for call-next atomicity.
@@ -467,3 +471,143 @@ def get_wait_time(token_id: int, db: Session = Depends(get_db)) -> WaitTimeRespo
         people_ahead=people_ahead,
         estimated_minutes=estimated_minutes,
     )
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/queue/reset — Reset queue and archive records
+# ---------------------------------------------------------------------------
+
+
+@router.delete(
+    "/reset",
+    status_code=status.HTTP_200_OK,
+    summary="Reset today's queue",
+    description="Archives all current patients to history, clears active queue tables, and resets auto-increment token counters.",
+)
+def reset_queue(db: Session = Depends(get_db)) -> dict:
+    """
+    Clear all patient rows and reset sequence to 1, while archiving data.
+    """
+    try:
+        # 1. Fetch all current patient records
+        patients = db.query(Patient).all()
+
+        # 2. Archive each patient
+        for p in patients:
+            # Pre-calculate wait time in minutes
+            wait_time = None
+            if p.consultation_start:
+                wait_time = max(0, int((p.consultation_start - p.created_at).total_seconds() / 60))
+            elif p.status == PatientStatus.WAITING.value:
+                wait_time = max(0, int((_utcnow() - p.created_at).total_seconds() / 60))
+
+            # Pre-calculate consultation duration in minutes
+            duration = None
+            if p.consultation_end and p.consultation_start:
+                duration = max(0, int((p.consultation_end - p.consultation_start).total_seconds() / 60))
+            elif p.status == PatientStatus.IN_CONSULTATION.value and p.consultation_start:
+                duration = max(0, int((_utcnow() - p.consultation_start).total_seconds() / 60))
+
+            archived = ArchivedPatient(
+                token_number=p.id,
+                name=p.name,
+                phone=p.phone,
+                status=p.status,
+                created_at=p.created_at,
+                called_at=p.called_at,
+                consultation_start=p.consultation_start,
+                consultation_end=p.consultation_end,
+                wait_time_minutes=wait_time,
+                consultation_duration_minutes=duration,
+                archived_at=_utcnow()
+            )
+            db.add(archived)
+
+        # 3. Clear active tables (ConsultationLog will cascade-delete)
+        db.query(Patient).delete()
+
+        # 4. Reset SQLite auto-increment token counter back to 0 (so next is 1)
+        try:
+            db.execute(text("DELETE FROM sqlite_sequence WHERE name = 'patients'"))
+        except Exception:
+            pass
+
+        # 5. Clear settings current_token and reset last_token_issued
+        settings = db.get(QueueSettings, 1)
+        if settings:
+            settings.current_token = None
+            settings.last_token_issued = 0
+
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to reset queue: {str(e)}"
+        )
+
+    # Broadcast empty state over websockets
+    broadcast_queue_update(db)
+
+    return {"message": "Queue has been reset successfully. Token sequence restarted from 1."}
+
+
+# ---------------------------------------------------------------------------
+# GET /api/history — Retrieve archived patients and summaries
+# ---------------------------------------------------------------------------
+
+
+@history_router.get(
+    "/api/history",
+    response_model=QueueHistoryResponse,
+    summary="Get patient queue history",
+    description="Returns archived patient records with search, status filters, and global statistics.",
+)
+def get_history(
+    name: Optional[str] = None,
+    status_filter: Optional[str] = None,
+    date_filter: Optional[str] = None,
+    db: Session = Depends(get_db)
+) -> QueueHistoryResponse:
+    """
+    Fetch history, supporting search by name, date, and status.
+    """
+    query = db.query(ArchivedPatient)
+
+    if name:
+        query = query.filter(ArchivedPatient.name.ilike(f"%{name}%"))
+    
+    if status_filter:
+        query = query.filter(ArchivedPatient.status == status_filter)
+
+    if date_filter:
+        # Check against archived_at or created_at (match YYYY-MM-DD date prefix)
+        query = query.filter(func.strftime("%Y-%m-%d", ArchivedPatient.archived_at) == date_filter)
+
+    records = query.order_by(ArchivedPatient.archived_at.desc()).all()
+
+    # Pre-calculate analytics on the filtered set
+    patients_served_today = sum(1 for r in records if r.status == PatientStatus.COMPLETED.value)
+    no_show_count = sum(1 for r in records if r.status == PatientStatus.NO_SHOW.value)
+
+    # Average wait time
+    wait_times = [r.wait_time_minutes for r in records if r.wait_time_minutes is not None]
+    avg_wait = round(sum(wait_times) / len(wait_times), 1) if wait_times else 0.0
+
+    # Average consultation time
+    consultation_times = [r.consultation_duration_minutes for r in records if r.consultation_duration_minutes is not None]
+    avg_consultation = round(sum(consultation_times) / len(consultation_times), 1) if consultation_times else 0.0
+
+    analytics = HistoryAnalytics(
+        patients_served_today=patients_served_today,
+        avg_wait_time=avg_wait,
+        avg_consultation_time=avg_consultation,
+        no_show_count=no_show_count
+    )
+
+    return QueueHistoryResponse(
+        records=[ArchivedPatientResponse.model_validate(r) for r in records],
+        analytics=analytics,
+        total=len(records)
+    )
+

@@ -122,6 +122,7 @@ app.add_middleware(
 
 app.include_router(patients.router)
 app.include_router(queue.router)
+app.include_router(queue.history_router)
 app.include_router(ws.router)
 
 # ---------------------------------------------------------------------------
