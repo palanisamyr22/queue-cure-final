@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: queue-cure-backend
+    env: python
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.12
+      - key: DATABASE_URL
+        value: sqlite:///./data/queue_cure.db
+      - key: CORS_ORIGINS
+        value: "*"
+    disk:
+      name: queue-cure-sqlite-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
