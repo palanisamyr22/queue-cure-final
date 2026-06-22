@@ -32,14 +32,16 @@ export default function AddPatientForm() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-      <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-        <UserPlus className="w-5 h-5 text-indigo-500" />
+    <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-8">
+      <h2 className="text-lg font-bold text-slate-850 mb-5 flex items-center gap-2.5">
+        <div className="p-2 bg-emerald-50 rounded-xl text-emerald-600 border border-emerald-100/50">
+          <UserPlus className="w-5 h-5" />
+        </div>
         Add New Patient
       </h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="name" className="block text-xs font-bold text-slate-450 uppercase tracking-wider mb-2">
             Patient Name *
           </label>
           <input
@@ -48,7 +50,7 @@ export default function AddPatientForm() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+            className="w-full px-4 py-3 border border-slate-200 bg-slate-50/40 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all text-sm font-medium placeholder-slate-400"
             placeholder="John Doe"
             disabled={isSubmitting}
             autoComplete="off"
@@ -56,7 +58,7 @@ export default function AddPatientForm() {
           />
         </div>
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="phone" className="block text-xs font-bold text-slate-450 uppercase tracking-wider mb-2">
             Phone Number (Optional)
           </label>
           <input
@@ -64,24 +66,33 @@ export default function AddPatientForm() {
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-            placeholder="+1 234 567 8900"
+            className="w-full px-4 py-3 border border-slate-200 bg-slate-50/40 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all text-sm font-medium placeholder-slate-400"
+            placeholder="+1 (234) 567-8900"
             disabled={isSubmitting}
             autoComplete="off"
           />
         </div>
         
-        {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded-lg">{error}</div>}
+        {error && (
+          <div className="text-sm text-red-650 bg-red-50 p-3 rounded-xl border border-red-100 font-medium">
+            {error}
+          </div>
+        )}
 
         <button
           type="submit"
           disabled={isSubmitting || !name.trim()}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md shadow-emerald-100/50 hover:shadow-lg disabled:shadow-none cursor-pointer"
         >
-          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
+          {isSubmitting ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <UserPlus className="w-5 h-5" />
+          )}
           Add to Queue
         </button>
       </form>
     </div>
   );
 }
+

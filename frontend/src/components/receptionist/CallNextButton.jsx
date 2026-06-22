@@ -20,10 +20,11 @@ export default function CallNextButton({ disabled }) {
     <button
       onClick={handleCallNext}
       disabled={disabled || isCalling}
-      className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 w-full shadow-md transition-transform active:scale-95"
+      className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold py-4.5 px-6 rounded-2xl flex items-center justify-center gap-3 w-full shadow-lg shadow-blue-150/40 hover:shadow-xl active:scale-[0.98] transition-all cursor-pointer border border-transparent"
     >
-      <Play className="w-6 h-6" />
-      <span className="text-xl">Call Next Patient</span>
+      <Play className="w-5 h-5 fill-current" />
+      <span className="text-lg">Call Next Patient</span>
     </button>
   );
 }
+

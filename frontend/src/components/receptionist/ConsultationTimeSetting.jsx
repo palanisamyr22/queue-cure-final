@@ -26,14 +26,16 @@ export default function ConsultationTimeSetting({ initialMinutes }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-      <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-        <Clock className="w-5 h-5 text-indigo-500" />
+    <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-8">
+      <h2 className="text-lg font-bold text-slate-850 mb-5 flex items-center gap-2.5">
+        <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600 border border-indigo-100/50">
+          <Clock className="w-5 h-5" />
+        </div>
         Queue Settings
       </h2>
       <form onSubmit={handleSave} className="flex items-end gap-4">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-xs font-bold text-slate-450 uppercase tracking-wider mb-2">
             Avg. Consultation Time (min)
           </label>
           <input
@@ -42,13 +44,13 @@ export default function ConsultationTimeSetting({ initialMinutes }) {
             max="120"
             value={minutes}
             onChange={(e) => setMinutes(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-3 border border-slate-200 bg-slate-50/40 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all text-sm font-medium"
           />
         </div>
         <button
           type="submit"
           disabled={isSaving || minutes == initialMinutes}
-          className="bg-slate-800 hover:bg-slate-900 disabled:bg-slate-400 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2 transition-all active:scale-[0.98] shadow-md shadow-indigo-150/50 hover:shadow-lg disabled:shadow-none cursor-pointer text-sm"
         >
           {saved ? "Saved!" : <><Save className="w-4 h-4" /> Save</>}
         </button>
@@ -56,3 +58,4 @@ export default function ConsultationTimeSetting({ initialMinutes }) {
     </div>
   );
 }
+

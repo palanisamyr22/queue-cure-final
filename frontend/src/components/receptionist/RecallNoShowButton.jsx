@@ -25,11 +25,12 @@ export default function RecallNoShowButton({ patient }) {
     <button
       onClick={handleRecall}
       disabled={isRecalling}
-      className="text-sm px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md flex items-center gap-1.5 transition-colors"
+      className="text-xs px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-250/60 rounded-xl flex items-center gap-1 transition-all font-bold cursor-pointer"
       title="Add back to queue"
     >
-      <RotateCcw className="w-3.5 h-3.5" />
+      <RotateCcw className="w-3 h-3" />
       Recall
     </button>
   );
 }
+
