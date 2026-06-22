@@ -5,7 +5,7 @@ import CurrentTokenCard from '../components/patient/CurrentTokenCard';
 import PeopleAheadCounter from '../components/patient/PeopleAheadCounter';
 import WaitTimeBadge from '../components/patient/WaitTimeBadge';
 import TokenChangeAlert from '../components/patient/TokenChangeAlert';
-import { Volume2, VolumeX, Clock, Wifi, RefreshCw } from 'lucide-react';
+import { Volume2, VolumeX, Clock, Wifi, RefreshCw, Calendar } from 'lucide-react';
 
 export default function PatientDisplay() {
   const { snapshot, isConnected, error } = useWebSocket();
@@ -13,6 +13,7 @@ export default function PatientDisplay() {
     return localStorage.getItem('voice_announcements_enabled') !== 'false';
   });
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const toggleVoice = () => {
     setVoiceEnabled(prev => {
@@ -21,6 +22,14 @@ export default function PatientDisplay() {
       return nextVal;
     });
   };
+
+  // Clock tick effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const { patients = [], current_token, total_waiting = 0, settings } = snapshot || {};
   
@@ -56,12 +65,25 @@ export default function PatientDisplay() {
     return Math.round(remainingMin + total_waiting * avg);
   }, [settings, elapsedSeconds, total_waiting]);
 
+  const formattedTime = currentTime.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+  const formattedDate = currentTime.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
   if (!snapshot && isConnected) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-pulse flex flex-col items-center gap-6">
           <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-2xl text-slate-500 font-medium tracking-wide">Loading Queue Display...</p>
+          <p className="text-2xl text-slate-550 font-medium tracking-wide">Loading Queue Display...</p>
         </div>
       </div>
     );
@@ -76,7 +98,7 @@ export default function PatientDisplay() {
       />
 
       {/* Top Bar */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-sm relative z-10 px-8 py-5 flex items-center justify-between">
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-205 sticky top-0 z-40 shadow-sm relative z-10 px-8 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200">
             <span className="text-white font-extrabold text-xl">+</span>
@@ -90,6 +112,15 @@ export default function PatientDisplay() {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Dynamic Clock Section */}
+          <div className="hidden md:flex items-center gap-3 border-r border-slate-200 pr-6">
+            <Calendar className="w-4.5 h-4.5 text-slate-400" />
+            <div className="text-right">
+              <p className="text-sm font-bold text-slate-800 leading-none">{formattedTime}</p>
+              <p className="text-[10px] text-slate-450 font-bold mt-1 uppercase tracking-wider">{formattedDate}</p>
+            </div>
+          </div>
+
           <button
             onClick={toggleVoice}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
@@ -99,6 +130,7 @@ export default function PatientDisplay() {
             }`}
             title={voiceEnabled ? 'Disable Voice Announcements' : 'Enable Voice Announcements'}
           >
+
             {voiceEnabled ? (
               <>
                 <Volume2 className="w-4 h-4 animate-pulse text-indigo-600" />
