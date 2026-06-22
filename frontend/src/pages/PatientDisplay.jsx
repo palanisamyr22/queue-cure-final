@@ -12,7 +12,6 @@ export default function PatientDisplay() {
   const [voiceEnabled, setVoiceEnabled] = useState(() => {
     return localStorage.getItem('voice_announcements_enabled') !== 'false';
   });
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const toggleVoice = () => {
@@ -39,31 +38,12 @@ export default function PatientDisplay() {
   // Combine current patient and waiting patients for the list
   const displayList = currentPatient ? [currentPatient, ...waitingPatients] : waitingPatients;
 
-  // Track active patient consultation duration elapsed time
-  useEffect(() => {
-    if (!currentPatient || !currentPatient.consultation_start) {
-      setElapsedSeconds(0);
-      return;
-    }
-
-    const start = new Date(currentPatient.consultation_start + 'Z').getTime();
-    const update = () => {
-      const sec = Math.max(0, Math.floor((Date.now() - start) / 1000));
-      setElapsedSeconds(sec);
-    };
-
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, [currentPatient]);
-
-  // Next walk-in wait time calculation (elapsed-time-aware)
-  const nextEstimatedWait = useMemo(() => {
-    const avg = settings?.avg_consultation_minutes || 10;
-    const elapsedMin = elapsedSeconds / 60;
-    const remainingMin = Math.max(0, avg - elapsedMin);
-    return Math.round(remainingMin + total_waiting * avg);
-  }, [settings, elapsedSeconds, total_waiting]);
+  // Next walk-in expected wait time calculation (matches Receptionist Dashboard's avg wait calculation)
+  const avgWaitTime = useMemo(() => {
+    return waitingPatients.length > 0
+      ? Math.round(waitingPatients.reduce((sum, p) => sum + (p.estimated_wait_minutes || 0), 0) / waitingPatients.length)
+      : (settings ? settings.avg_consultation_minutes : 10);
+  }, [waitingPatients, settings]);
 
   const formattedTime = currentTime.toLocaleTimeString(undefined, {
     hour: '2-digit',
@@ -164,19 +144,19 @@ export default function PatientDisplay() {
             {/* Card 1: People Ahead */}
             <PeopleAheadCounter totalWaiting={total_waiting} />
             
-            {/* Card 2: Next Est. Wait Time */}
+            {/* Card 2: Next Walk-In Expected Wait Card */}
             <div className="bg-white border border-slate-200/85 rounded-3xl shadow-sm p-6 flex items-center justify-between transition-all hover:shadow-md duration-300">
               <div className="flex items-center gap-4">
                 <div className="bg-purple-50 p-3.5 rounded-2xl border border-purple-100/50">
                   <Clock className="w-6 h-6 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800 tracking-tight">Est. Wait Time</h3>
-                  <p className="text-[10px] text-slate-550 font-bold uppercase tracking-wider mt-0.5">Next Walk-in</p>
+                  <h3 className="text-sm font-bold text-slate-800 tracking-tight">Next Walk-In Expected Wait</h3>
+                  <p className="text-[10px] text-slate-550 font-bold uppercase tracking-wider mt-0.5">Estimated Wait</p>
                 </div>
               </div>
               <div className="text-3xl font-black text-purple-600 font-mono tracking-tight">
-                {nextEstimatedWait} <span className="text-xs font-bold text-slate-400">m</span>
+                {avgWaitTime} <span className="text-xs font-bold text-slate-400">min</span>
               </div>
             </div>
 
