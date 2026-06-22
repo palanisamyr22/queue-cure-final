@@ -234,7 +234,6 @@ class Patient(Base):
         "ConsultationLog",
         back_populates="patient",
         uselist=False,  # one-to-one: each patient has at most one log entry
-        cascade="all, delete-orphan",
     )
 
     # ------------------------------------------------------------------
@@ -361,10 +360,10 @@ class ConsultationLog(Base):
         autoincrement=True,
     )
 
-    patient_id: Mapped[int] = mapped_column(
+    patient_id: Mapped[Optional[int]] = mapped_column(
         Integer,
-        ForeignKey("patients.id", ondelete="CASCADE"),
-        nullable=False,
+        ForeignKey("patients.id", ondelete="SET NULL"),
+        nullable=True,
         unique=True,  # One log entry per patient visit.
         comment="FK to patients.id — the completed patient this log entry belongs to.",
     )

@@ -523,7 +523,7 @@ def reset_queue(db: Session = Depends(get_db)) -> dict:
             )
             db.add(archived)
 
-        # 3. Clear active tables (ConsultationLog will cascade-delete)
+        # 3. Clear active tables (ConsultationLog rows are preserved with patient_id set to NULL due to SET NULL)
         db.query(Patient).delete()
 
         # 4. Reset SQLite auto-increment token counter back to 0 (so next is 1)

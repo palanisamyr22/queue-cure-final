@@ -91,12 +91,12 @@ export default function ReceptionistDashboard() {
 
   // Statistic Card Calculations
   const activeCompleted = patients.filter(p => p.status === 'completed').length;
-  const totalServedTodayCount = activeCompleted + historyStats.patients_served_today;
+  const totalServedTodayCount = activeCompleted;
   
   const waitingPatients = patients.filter(p => p.status === 'waiting');
   const avgWaitTimeCalculated = waitingPatients.length > 0
     ? Math.round(waitingPatients.reduce((sum, p) => sum + (p.estimated_wait_minutes || 0), 0) / waitingPatients.length)
-    : historyStats.avg_wait_time || (settings ? settings.avg_consultation_minutes : 0);
+    : (settings ? settings.avg_consultation_minutes : 10);
 
   const formattedTime = currentTime.toLocaleTimeString(undefined, {
     hour: '2-digit',

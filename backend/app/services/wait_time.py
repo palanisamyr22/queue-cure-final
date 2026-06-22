@@ -8,16 +8,18 @@ logger = logging.getLogger(__name__)
 
 def get_dynamic_avg_consultation(db: Session) -> int:
     """
-    Calculate the rolling average of actual consultation durations from the last 20 completions.
+    Calculate the rolling average of actual consultation durations from the last 20 completions
+    of the current active session (joining the active Patient table).
     Fallback to QueueSettings.avg_consultation_minutes if insufficient data.
     """
     # Get baseline fallback
     settings = db.get(QueueSettings, 1)
     fallback = settings.avg_consultation_minutes if settings else 10
 
-    # Get last 20 consultations
+    # Get last 20 consultations from the current session
     logs = (
         db.query(ConsultationLog)
+        .join(Patient)
         .order_by(ConsultationLog.id.desc())
         .limit(20)
         .all()
@@ -28,6 +30,7 @@ def get_dynamic_avg_consultation(db: Session) -> int:
 
     total_minutes = sum(log.duration_minutes for log in logs)
     return max(1, round(total_minutes / len(logs)))
+
 
 def get_current_patient_remaining_time(db: Session, avg_minutes: int) -> int:
     """
