@@ -97,19 +97,9 @@ app = FastAPI(
 # CORS
 # ---------------------------------------------------------------------------
 
-# Read allowed origins from environment.
-# Development default includes the Vite dev server.
-# Production: set CORS_ORIGINS to your Vercel domain, e.g.
-#   CORS_ORIGINS=https://queue-cure.vercel.app
-_raw_origins = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:5173,http://localhost:3000",
-)
-_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_allowed_origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
