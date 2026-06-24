@@ -1,6 +1,14 @@
 # Queue Cure
 
 Queue Cure is a modern, real-time clinic waitlist management system. It replaces stressful, opaque waiting room experiences with transparent, mathematically driven wait time estimates broadcast instantly to patients via WebSockets.
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Video Walkthrough
+
+
+https://github.com/user-attachments/assets/b02ea38e-8320-4be8-8055-afd702c7f5e1
+
+
 
 📚 **Documentation**:
 *   [Architecture Blueprint](file:///c:/Users/palan/OneDrive/Documents/queue-cure/docs/ARCHITECTURE.md)
