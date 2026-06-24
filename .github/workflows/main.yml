@@ -7,4 +7,4 @@
     exclude-authors: # optional, default is github-actions[bot]
     # Vercel Deploy Hook URL
     vercel-deploy-hook: 
-          
+          queue-cure-final-git-main-palanisamyr22s-projects.vercel.app
