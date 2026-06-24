@@ -3,12 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ReceptionistDashboard from './pages/ReceptionistDashboard';
 import PatientDisplay from './pages/PatientDisplay';
 import Login from './pages/Login';
+import Landing from './pages/Landing';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/landing" element={<Landing />} />
         <Route 
           path="/receptionist" 
           element={
@@ -19,8 +21,9 @@ function App() {
         />
         <Route path="/patient" element={<PatientDisplay />} />
         <Route path="/login" element={<Login />} />
-        {/* Default to Receptionist route which will auto-redirect to /login if unauthenticated */}
-        <Route path="*" element={<Navigate to="/receptionist" replace />} />
+        {/* Default to the Landing page */}
+        <Route path="/" element={<Navigate to="/landing" replace />} />
+        <Route path="*" element={<Navigate to="/landing" replace />} />
       </Routes>
     </BrowserRouter>
   );
